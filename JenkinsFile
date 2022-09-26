@@ -5,13 +5,14 @@ pipeline {
         stage("Github Connect") {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/p-nishad/docker-hello-world-spring-boot']]])
+                sh 'mvn clean install -DskipTests'
                 
             }
         }
         stage('Docker') {
             steps {
                 script {
-                sh 'docker build -t simple-spring-image .'
+                sh 'docker build -t spring-image .'
                 sh 'docker images'
                 }
              }
@@ -26,8 +27,8 @@ pipeline {
             stage('AWS ECR push') {
                 steps {
                     script {
-                    sh 'docker tag simple-spring:latest public.ecr.aws/k3b8b1b7/simple-spring:${BUILD_NUMBER}'
-                    sh 'docker push public.ecr.aws/k3b8b1b7/simple-spring:${BUILD_NUMBER}'
+                    sh 'docker tag spring-image:latest public.ecr.aws/k3b8b1b7/spring-image:${BUILD_NUMBER}'
+                    sh 'docker push public.ecr.aws/k3b8b1b7/spring-image:${BUILD_NUMBER}'
                     }
                 }
             }
