@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage("Github Connect") {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/p-nishad/docker-hello-world-spring-boot']]])
+                
+            }
+        }
+        stage('Docker') {
+            steps {
+                script {
+                sh 'docker build -t simple-spring-image .'
+                sh 'docker images'
+                }
+             }
+            }
+            stage('AWS ECR Login') {
+            steps {
+                script {
+                sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/k3b8b1b7'
+                }
+            }
+        }
+            stage('AWS ECR push') {
+                steps {
+                    script {
+                    sh 'docker tag simple-spring:latest public.ecr.aws/k3b8b1b7/simple-spring:${BUILD_NUMBER}'
+                    sh 'docker push public.ecr.aws/k3b8b1b7/simple-spring:${BUILD_NUMBER}'
+                    }
+                }
+            }
+        }
+    }
+  
